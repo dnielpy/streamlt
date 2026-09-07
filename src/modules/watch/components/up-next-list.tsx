@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import { VideoThumbnail } from "@/src/components/common/video-thumbnail";
 import type { Video } from "@/src/modules/list/types";
 
 type UpNextListProps = {
@@ -27,12 +27,10 @@ export function UpNextList({ videos }: UpNextListProps) {
             key={video.id}
           >
             <div className="relative aspect-video w-[145px] shrink-0 overflow-hidden rounded-lg bg-muted shadow-sm sm:w-[180px] lg:w-[145px] xl:w-[160px]">
-              <Image
+              <VideoThumbnail
                 alt={video.title}
-                className="object-cover transition duration-300 group-hover:scale-[1.025]"
-                fill
                 sizes="(min-width: 1280px) 160px, (min-width: 1024px) 145px, 180px"
-                src={video.thumbnail}
+                src={video.thumbnailUrl}
               />
               <span className="absolute bottom-1.5 right-1.5 rounded bg-black/85 px-1.5 py-px text-[11px] font-bold leading-4 text-white">
                 {video.duration}
@@ -44,7 +42,7 @@ export function UpNextList({ videos }: UpNextListProps) {
                 {video.title}
               </h3>
               <p className="mt-1 text-[13px] leading-4 text-muted-foreground">
-                {video.views} <span aria-hidden="true">•</span> {video.publishedAt}
+                {video.duration} <span aria-hidden="true">•</span> Modified {formatDate(video.modifiedAt)}
               </p>
             </div>
           </Link>
@@ -52,4 +50,12 @@ export function UpNextList({ videos }: UpNextListProps) {
       </div>
     </aside>
   );
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
 }

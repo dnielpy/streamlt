@@ -1,114 +1,45 @@
 # Streamlt
 
-Streamlt is a responsive personal video library built with Next.js. It provides a clean, YouTube-inspired interface for browsing a collection of videos and opening each one in a dedicated watch view.
-
-The project currently uses mock data and direct video paths, but its structure is ready to connect to a backend that supplies real video metadata and media URLs.
+Streamlt is a responsive local video library built with Next.js. It scans a folder on the server, creates a searchable catalog, and streams MP4 and WebM files directly to the browser.
 
 ## Features
 
-### Video library
+- Recursive local-library scanning.
+- First page of 12 videos with YouTube-style infinite loading.
+- Search by file name or relative folder.
+- Most recently modified videos first.
+- Native video playback with seeking, volume and fullscreen controls.
+- HTTP range streaming for efficient seeking.
+- On-demand thumbnails generated with `ffmpeg`.
+- Duration metadata read with `ffprobe`.
+- Download action for every video.
+- Responsive light and dark interface.
 
-- Responsive video grid on the home page.
-- Thumbnail, title, duration, view count, and publication date for each video.
-- Keyboard-focusable video cards linking to the dedicated watch view.
-- Responsive layout for mobile, tablet, and desktop screens.
+## Run with Docker Compose
 
-### Watch view
+Copy the example environment file and point it at the folder containing your videos:
 
-Each video is available at `/watch/[videoId]`.
-
-- Native HTML5 video playback using the video's `path`.
-- Existing thumbnail used as the video poster.
-- Custom controls for play/pause, seeking, elapsed time, volume, mute, and fullscreen.
-- Smooth progress updates while the video is playing.
-- Error state when a media path cannot be loaded.
-- Download action next to the video title.
-- “Up next” list with links to the remaining videos.
-- Sticky player and independently scrollable recommendations on large screens.
-- The global sidebar is hidden on watch pages so the player and recommendations have more space.
-
-### Global interface
-
-- Streamlt branding and navigation bar.
-- Search field UI in the application header.
-- Light and dark theme toggle.
-- Home navigation through the logo and sidebar.
-- Accessible labels, focus states, and keyboard-friendly controls.
-
-## Routes
-
-| Route | Description |
-| --- | --- |
-| `/` | Video library home page. |
-| `/watch/[videoId]` | Dedicated video player and “Up next” view. |
-| Unknown routes | Next.js not-found page. |
-
-Example watch URL:
-
-```text
-/watch/morning-mountains
+```bash
+cp .env.example .env
 ```
 
-## Video data model
+Then edit `.env`:
 
-Videos are currently defined in `src/modules/list/data/mock-videos.ts` and follow this shape:
-
-```ts
-type Video = {
-  id: string;
-  title: string;
-  views: string;
-  publishedAt: string;
-  duration: string;
-  thumbnail: string;
-  path: string;
-};
+```env
+VIDEO_LIBRARY_HOST_PATH=/absolute/path/to/your/videos
 ```
 
-`path` must point to a browser-playable media resource, such as an MP4 or WebM file. It can be either a relative path or an absolute URL:
+Start the server:
 
-```ts
-{
-  id: "morning-mountains",
-  title: "A Peaceful Morning in the Mountains",
-  views: "125K views",
-  publishedAt: "3 days ago",
-  duration: "12:34",
-  thumbnail: "https://example.com/thumbnail.jpg",
-  path: "/videos/morning-mountains.mp4",
-}
+```bash
+docker compose up --build -d
 ```
 
-The mock collection uses `DEFAULT_VIDEO_PATH` as a temporary playable source. Replace that value, or provide a different `path` for each video, when real media data is connected.
+Open [http://localhost:3000](http://localhost:3000) from any device on the same local network using the server's LAN IP.
 
-## Project structure
+The video directory is mounted read-only. Generated thumbnails are stored in the named `streamlt-cache` Docker volume. The image includes both `ffmpeg` and `ffprobe`.
 
-```text
-src/
-├── app/
-│   ├── page.tsx                     # Video library home route
-│   ├── watch/[videoId]/page.tsx     # Dynamic watch route
-│   ├── layout.tsx                   # Root metadata and application shell
-│   └── globals.css                  # Theme tokens and range-control styles
-├── components/
-│   └── common/video-card.tsx        # Reusable video card
-└── modules/
-    ├── layout/                     # Header, sidebar, theme, and shell
-    ├── list/                       # Video grid, types, and mock data
-    └── watch/                      # Player, watch view, and Up next list
-```
-
-## Tech stack
-
-- Next.js `16.3.4` with the App Router.
-- React `19.2.8`.
-- TypeScript.
-- Tailwind CSS v4.
-- `next-themes` for theme switching.
-- `lucide-react` for interface icons.
-- pnpm for package management.
-
-## Getting started
+## Local development
 
 Install dependencies:
 
@@ -116,46 +47,39 @@ Install dependencies:
 pnpm install
 ```
 
-Start the development server:
+Set the server-side library path before starting Next.js:
 
 ```bash
+VIDEO_LIBRARY_PATH=/absolute/path/to/your/videos \
+VIDEO_CACHE_PATH=/absolute/path/to/a/writable/cache \
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+For real durations and thumbnails, install `ffmpeg` locally. If it is not installed, videos still stream and the UI shows a fallback duration/thumbnail.
 
-## Available scripts
+## Configuration
 
-```bash
-pnpm dev      # Start the development server
-pnpm lint     # Run ESLint
-pnpm build    # Create a production build
-pnpm start    # Start the production server
-```
+| Variable | Description | Required |
+| --- | --- | --- |
+| `VIDEO_LIBRARY_PATH` | Absolute server-side path containing the video library. | Yes |
+| `VIDEO_CACHE_PATH` | Writable folder for generated thumbnails. | No; defaults to `.streamlt-cache`. |
 
-## Media and external assets
+Only `.mp4` and `.webm` files are included. The scanner ignores hidden files and directories and does not follow symbolic links. New or removed files appear after a page reload or a new search.
 
-- Video playback is handled by the browser's native `<video>` element.
-- MP4 and WebM direct media paths are supported by the current player.
-- HLS streams (`.m3u8`) are not supported yet.
-- Thumbnails currently use remote Unsplash images configured in `next.config.ts`.
-- Downloads use the `video.path` URL. For cross-origin media, the server must allow the download and may need a `Content-Disposition` response header.
+## Routes
 
-## Current limitations
-
-- The video collection is static mock data; there is no backend or database yet.
-- The search field is currently presentational and is not connected to filtering.
-- The theme toggle changes the interface theme but does not persist server-side user settings.
-- There is no authentication, upload flow, playlist management, or watch-history persistence.
-- The player does not yet include subtitles, playback speed, picture-in-picture, theater mode, or HLS support.
+| Route | Description |
+| --- | --- |
+| `/` | Searchable video library. |
+| `/watch/[videoId]` | Watch view for one local video. |
+| `/api/videos` | Paginated catalog endpoint. |
+| `/api/videos/[videoId]/stream` | Range-aware video stream and download endpoint. |
+| `/api/videos/[videoId]/thumbnail` | Cached JPEG thumbnail endpoint. |
 
 ## Validation
-
-The current project can be checked with:
 
 ```bash
 pnpm lint
 pnpm build
+docker compose build
 ```
-
-Both commands should complete successfully before handing off changes.

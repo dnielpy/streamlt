@@ -38,7 +38,7 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
   const lastVolumeRef = useRef(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [hasError, setHasError] = useState(!video.path);
+  const [hasError, setHasError] = useState(!video.streamUrl);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -52,7 +52,7 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
 
     setCurrentTime(0);
     setDuration(0);
-    setHasError(!video.path);
+    setHasError(!video.streamUrl);
     setIsPlaying(false);
 
     const handleLoadedMetadata = () => {
@@ -122,7 +122,7 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
       player.removeEventListener("error", handleError);
       stopProgressLoop();
     };
-  }, [video.path]);
+  }, [video.streamUrl]);
 
   const togglePlay = async () => {
     const player = videoRef.current;
@@ -213,13 +213,13 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
       <video
         aria-label={`${video.title} video player`}
         className="absolute inset-0 h-full w-full cursor-pointer object-contain"
-        key={video.path}
+        key={video.streamUrl}
         onClick={togglePlay}
         playsInline
-        poster={video.thumbnail}
+        poster={video.thumbnailUrl}
         preload="metadata"
         ref={videoRef}
-        src={video.path}
+        src={video.streamUrl}
       />
 
       {hasError && (

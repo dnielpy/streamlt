@@ -21,7 +21,7 @@ export function WatchView({ video, upNext }: WatchViewProps) {
                 {video.title}
               </h1>
               <p className="mt-2 text-[14px] text-muted-foreground">
-                {video.views} <span aria-hidden="true">•</span> {video.publishedAt}
+                {video.duration} <span aria-hidden="true">•</span> Modified {formatDate(video.modifiedAt)}
               </p>
             </div>
 
@@ -29,7 +29,7 @@ export function WatchView({ video, upNext }: WatchViewProps) {
               aria-label="Download video"
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-sm transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               download
-              href={video.path}
+              href={`${video.streamUrl}?download=1`}
               title="Download video"
             >
               <Download aria-hidden="true" className="h-4 w-4" />
@@ -41,4 +41,12 @@ export function WatchView({ video, upNext }: WatchViewProps) {
       </div>
     </section>
   );
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
 }

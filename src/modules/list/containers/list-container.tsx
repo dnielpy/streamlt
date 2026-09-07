@@ -1,6 +1,27 @@
 import { VideoListView } from "@/src/modules/list/video-list-view";
-import { mockVideos } from "@/src/modules/list/data/mock-videos";
+import type { VideoPage } from "@/src/modules/list/types";
+import { listVideos } from "@/src/modules/library/server/library";
 
-export function ListContainer() {
-  return <VideoListView videos={mockVideos} />;
+type ListContainerProps = {
+  query: string;
+};
+
+export async function ListContainer({ query }: ListContainerProps) {
+  let page: VideoPage | null = null;
+  let errorMessage: string | undefined;
+
+  try {
+    page = await listVideos({ query });
+  } catch (error) {
+    errorMessage = error instanceof Error ? error.message : "Unable to load the video library.";
+  }
+
+  return (
+    <VideoListView
+      error={errorMessage}
+      initialCursor={page?.nextCursor ?? null}
+      initialVideos={page?.items ?? []}
+      query={query}
+    />
+  );
 }
