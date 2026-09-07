@@ -19,8 +19,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${roboto.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full bg-white text-slate-950">
+      <body className="min-h-full bg-background text-foreground">
         <AppLayoutContainer>{children}</AppLayoutContainer>
       </body>
     </html>
