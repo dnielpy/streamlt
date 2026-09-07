@@ -1,7 +1,9 @@
 import type { Video } from "@/src/modules/list/types";
 
+export const DEFAULT_YOUTUBE_VIDEO_ID = "8Fk3z2hQ9mA";
+
 export const mockVideos: Video[] = [
-  { id: "morning-mountains", title: "A Peaceful Morning in the Mountains", views: "125K views", publishedAt: "3 days ago", duration: "12:34", thumbnail: "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=960&q=85" },
+  { id: "morning-mountains", title: "A Peaceful Morning in the Mountains", views: "125K views", publishedAt: "3 days ago", duration: "12:34", thumbnail: "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=960&q=85", youtubeId: DEFAULT_YOUTUBE_VIDEO_ID },
   { id: "focused-day", title: "How to Build a More Focused Day (That Actually Sticks)", views: "482K views", publishedAt: "2 weeks ago", duration: "8:21", thumbnail: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=960&q=85" },
   { id: "hidden-towns", title: "Exploring Hidden Towns Along the Coast", views: "210K views", publishedAt: "10 days ago", duration: "15:06", thumbnail: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=960&q=85" },
   { id: "dog-happier", title: "10 Simple Ways to Make Your Dog Happier", views: "320K views", publishedAt: "1 month ago", duration: "9:48", thumbnail: "https://images.unsplash.com/photo-1558788353-f76d92427f16?auto=format&fit=crop&w=960&q=85" },
