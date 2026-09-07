@@ -1,0 +1,20 @@
+import type { Video } from "@/src/modules/list/types";
+
+export const mockVideos: Video[] = [
+  { id: "morning-mountains", title: "A Peaceful Morning in the Mountains", views: "125K views", publishedAt: "3 days ago", duration: "12:34", thumbnail: "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=960&q=85" },
+  { id: "focused-day", title: "How to Build a More Focused Day (That Actually Sticks)", views: "482K views", publishedAt: "2 weeks ago", duration: "8:21", thumbnail: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=960&q=85" },
+  { id: "hidden-towns", title: "Exploring Hidden Towns Along the Coast", views: "210K views", publishedAt: "10 days ago", duration: "15:06", thumbnail: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=960&q=85" },
+  { id: "dog-happier", title: "10 Simple Ways to Make Your Dog Happier", views: "320K views", publishedAt: "1 month ago", duration: "9:48", thumbnail: "https://images.unsplash.com/photo-1558788353-f76d92427f16?auto=format&fit=crop&w=960&q=85" },
+  { id: "desk-setup", title: "My Minimal Desk Setup for Maximum Productivity", views: "178K views", publishedAt: "2 weeks ago", duration: "11:22", thumbnail: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=960&q=85" },
+  { id: "pasta", title: "Simple Pasta Perfection (5 Ingredients)", views: "615K views", publishedAt: "3 weeks ago", duration: "7:36", thumbnail: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=960&q=85" },
+  { id: "waterfalls", title: "The Most Beautiful Waterfalls You've Never Heard Of", views: "97K views", publishedAt: "6 days ago", duration: "14:51", thumbnail: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=960&q=85" },
+  { id: "gaming", title: "Budget Gaming Setup – Great Performance for Less", views: "289K views", publishedAt: "1 month ago", duration: "10:18", thumbnail: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&w=960&q=85" },
+  { id: "important-meeting", title: "A Very Important Meeting", views: "1.2M views", publishedAt: "2 weeks ago", duration: "10:03", thumbnail: "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=960&q=85" },
+  { id: "golden-hours", title: "Chasing Golden Hours", views: "845K views", publishedAt: "3 weeks ago", duration: "8:17", thumbnail: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=960&q=85" },
+  { id: "morning-coffee", title: "Morning Coffee, Better Days", views: "623K views", publishedAt: "1 month ago", duration: "6:29", thumbnail: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=960&q=85" },
+  { id: "underwater", title: "Underwater Encounters", views: "1.1M views", publishedAt: "2 weeks ago", duration: "11:41", thumbnail: "https://images.unsplash.com/photo-1496196614460-48988a57fccf?auto=format&fit=crop&w=960&q=85" },
+  { id: "beach-days", title: "Beach Days Are the Best Days", views: "980K views", publishedAt: "3 weeks ago", duration: "9:15", thumbnail: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=960&q=85" },
+  { id: "forest-walk", title: "Forest Walks Clear the Mind", views: "412K views", publishedAt: "1 month ago", duration: "12:08", thumbnail: "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=960&q=85" },
+  { id: "small-dreams", title: "Small Moments, Big Dreams", views: "730K views", publishedAt: "3 weeks ago", duration: "8:52", thumbnail: "https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?auto=format&fit=crop&w=960&q=85" },
+  { id: "small-realities", title: "Small Moments, Big Realities", views: "730K views", publishedAt: "1 month ago", duration: "7:26", thumbnail: "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=960&q=85" },
+];
