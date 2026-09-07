@@ -5,5 +5,5 @@ export type Video = {
   publishedAt: string;
   duration: string;
   thumbnail: string;
-  youtubeId?: string;
+  path: string;
 };
