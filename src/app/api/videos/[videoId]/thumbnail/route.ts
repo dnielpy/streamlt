@@ -81,7 +81,8 @@ export async function GET(_request: Request, context: ThumbnailContext) {
 
   try {
     await mkdir(getVideoCacheRoot(), { recursive: true });
-    temporaryPath = `${cachePath}.${randomUUID()}.tmp`;
+    // Keep an image extension so ffmpeg can infer the JPEG output format.
+    temporaryPath = `${cachePath}.${randomUUID()}.tmp.jpg`;
     const generated = await generateThumbnail(video.absolutePath, temporaryPath);
 
     if (!generated) {

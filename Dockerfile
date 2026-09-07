@@ -1,15 +1,21 @@
+# syntax=docker/dockerfile:1.7
+
 FROM node:24-bookworm-slim AS base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
 RUN corepack enable && corepack prepare pnpm@11.25.0 --activate
+RUN pnpm config set fetch-retries 5 \
+  && pnpm config set fetch-timeout 600000 \
+  && pnpm config set network-concurrency 4
 
 FROM base AS dependencies
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=streamlt-pnpm-store,target=/pnpm/store \
+  pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app

@@ -29,6 +29,7 @@ export function VideoThumbnail({ alt, src, sizes }: VideoThumbnailProps) {
       onError={() => setHasError(true)}
       sizes={sizes}
       src={src}
+      unoptimized
     />
   );
 }
