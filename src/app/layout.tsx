@@ -12,6 +12,9 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   title: "LocalTube",
   description: "Your personal video library.",
+  icons: {
+    icon: [{ url: "/streamlt-logo.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
