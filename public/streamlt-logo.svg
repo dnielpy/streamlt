@@ -1,0 +1,17 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logo-gradient" x1="16" y1="10" x2="80" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF1B2D"/>
+      <stop offset="1" stop-color="#E50914"/>
+    </linearGradient>
+    <clipPath id="logo-clip">
+      <rect width="96" height="96" rx="24"/>
+    </clipPath>
+  </defs>
+  <rect width="96" height="96" rx="24" fill="url(#logo-gradient)"/>
+  <g clip-path="url(#logo-clip)">
+    <path d="M-8 54C18 77 47 79 104 40V104H-8V54Z" fill="#D70818" fill-opacity="0.34"/>
+  </g>
+  <path d="M34 24.5C29.2 21.62 23 25.08 23 30.68V65.32C23 70.92 29.2 74.38 34 71.5L66.2 52.18C70.8 49.42 70.8 46.58 66.2 43.82L34 24.5Z" fill="white"/>
+  <path d="M42.5 38.5C37.25 38.5 33 42.75 33 48C33 49.91 33.56 51.69 34.52 53.19L42.5 64L50.48 53.19C51.44 51.69 52 49.91 52 48C52 42.75 47.75 38.5 42.5 38.5Z" fill="url(#logo-gradient)"/>
+</svg>

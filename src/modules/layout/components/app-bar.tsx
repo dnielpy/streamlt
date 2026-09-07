@@ -1,19 +1,24 @@
 "use client";
 
 import Image from "next/image";
-import { Play, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 export function AppBar() {
   return (
     <header className="sticky top-0 z-20 flex h-[76px] items-center gap-5 border-b border-slate-100 bg-white/95 px-4 backdrop-blur sm:px-7 lg:px-10">
       <a
         className="flex shrink-0 items-center gap-2 text-[22px] font-bold tracking-[-0.07em] text-slate-950"
-        href="/list"
-        aria-label="LocalTube home"
+        href="/"
+        aria-label="Streamlt home"
       >
-        <span className="flex h-8 w-9 items-center justify-center rounded-[10px] bg-red-600 text-white shadow-sm">
-          <Play className="ml-0.5 h-[18px] w-[18px] fill-current" strokeWidth={2.8} />
-        </span>
+        <Image
+          src="/streamlt-logo.svg"
+          alt=""
+          width={40}
+          height={40}
+          priority
+          className="h-8 w-8 shadow-sm"
+        />
         Streamlt
       </a>
 
