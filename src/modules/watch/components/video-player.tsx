@@ -15,6 +15,9 @@ type VideoPlayerProps = {
   video: Video;
 };
 
+const SEEK_STEP_SECONDS = 5;
+const CONTROLS_HIDE_DELAY_MS = 3000;
+
 function formatTime(time: number) {
   if (!Number.isFinite(time) || time < 0) {
     return "0:00";
@@ -38,12 +41,14 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressFrameRef = useRef<number | null>(null);
+  const controlsHideTimeoutRef = useRef<number | null>(null);
   const lastVolumeRef = useRef(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [hasError, setHasError] = useState(!video.streamUrl);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [volume, setVolume] = useState(1);
 
   useEffect(() => {
@@ -57,6 +62,7 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
     setDuration(0);
     setHasError(!video.streamUrl);
     setIsPlaying(false);
+    setShowControls(true);
 
     const handleLoadedMetadata = () => {
       setDuration(Number.isFinite(player.duration) ? player.duration : 0);
@@ -89,6 +95,7 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
     };
     const handlePause = () => {
       setIsPlaying(false);
+      setShowControls(true);
       stopProgressLoop();
       setCurrentTime(player.currentTime);
     };
@@ -98,11 +105,13 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
     };
     const handleEnded = () => {
       setIsPlaying(false);
+      setShowControls(true);
       stopProgressLoop();
       setCurrentTime(player.currentTime);
     };
     const handleError = () => {
       setIsPlaying(false);
+      setShowControls(true);
       setHasError(true);
       stopProgressLoop();
     };
@@ -189,6 +198,101 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
     }
   };
 
+  useEffect(() => {
+    const handleKeyboardShortcuts = (event: KeyboardEvent) => {
+      const target = event.target;
+
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ["A", "BUTTON", "INPUT", "SELECT", "TEXTAREA"].includes(target.tagName))
+      ) {
+        return;
+      }
+
+      const player = videoRef.current;
+
+      if (!player || hasError) {
+        return;
+      }
+
+      if (event.code === "Space") {
+        event.preventDefault();
+
+        if (player.paused) {
+          void player.play().catch(() => setIsPlaying(false));
+        } else {
+          player.pause();
+        }
+
+        return;
+      }
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+
+        const direction = event.key === "ArrowLeft" ? -1 : 1;
+        const maxTime = Number.isFinite(player.duration) ? player.duration : Number.POSITIVE_INFINITY;
+        const nextTime = Math.min(
+          maxTime,
+          Math.max(0, player.currentTime + direction * SEEK_STEP_SECONDS),
+        );
+
+        player.currentTime = nextTime;
+        setCurrentTime(nextTime);
+        return;
+      }
+
+      if (event.key.toLowerCase() === "m") {
+        event.preventDefault();
+
+        if (player.muted || player.volume === 0) {
+          player.muted = false;
+          player.volume = lastVolumeRef.current || 1;
+        } else {
+          lastVolumeRef.current = player.volume;
+          player.muted = true;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyboardShortcuts);
+    return () => window.removeEventListener("keydown", handleKeyboardShortcuts);
+  }, [hasError]);
+
+  const clearControlsHideTimeout = () => {
+    if (controlsHideTimeoutRef.current !== null) {
+      window.clearTimeout(controlsHideTimeoutRef.current);
+      controlsHideTimeoutRef.current = null;
+    }
+  };
+
+  const revealControls = () => {
+    setShowControls(true);
+    clearControlsHideTimeout();
+
+    if (isPlaying) {
+      controlsHideTimeoutRef.current = window.setTimeout(() => {
+        setShowControls(false);
+        controlsHideTimeoutRef.current = null;
+      }, CONTROLS_HIDE_DELAY_MS);
+    }
+  };
+
+  useEffect(() => {
+    clearControlsHideTimeout();
+
+    if (!isPlaying) {
+      return;
+    }
+
+    controlsHideTimeoutRef.current = window.setTimeout(() => {
+      setShowControls(false);
+      controlsHideTimeoutRef.current = null;
+    }, CONTROLS_HIDE_DELAY_MS);
+
+    return clearControlsHideTimeout;
+  }, [isPlaying]);
+
   const toggleFullscreen = async () => {
     const container = playerContainerRef.current;
 
@@ -211,6 +315,9 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
   return (
     <div
       className="group relative aspect-video overflow-hidden rounded-xl bg-black shadow-sm"
+      onFocusCapture={revealControls}
+      onMouseMove={revealControls}
+      onTouchStart={revealControls}
       ref={playerContainerRef}
     >
       <video
@@ -240,7 +347,13 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pb-3 pt-10 text-white opacity-90 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 sm:px-4">
+      <div
+        className={`absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pb-3 pt-10 text-white transition-opacity duration-200 sm:px-4 ${
+          showControls
+            ? "opacity-90 group-hover:opacity-100 group-focus-within:opacity-100"
+            : "pointer-events-none opacity-0"
+        }`}
+      >
         <div className="rounded-xl border border-white/10 bg-black/35 px-2.5 py-2 backdrop-blur-md">
           <div className="relative mb-1.5 h-3">
             <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-white/30" />
