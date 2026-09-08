@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatVideoTitle } from "@/lib/utils";
 import { VideoThumbnail } from "@/src/components/common/video-thumbnail";
 import type { Video } from "@/src/modules/list/types";
 
@@ -9,6 +10,8 @@ type VideoCardProps = {
 };
 
 export function VideoCard({ video }: VideoCardProps) {
+  const displayTitle = formatVideoTitle(video.title);
+
   return (
     <Link
       className="group block min-w-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
@@ -17,7 +20,7 @@ export function VideoCard({ video }: VideoCardProps) {
       <article>
         <div className="relative aspect-video overflow-hidden rounded-lg bg-muted shadow-sm">
           <VideoThumbnail
-            alt={video.title}
+            alt={displayTitle}
             sizes="(min-width: 1280px) 300px, (min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
             src={video.thumbnailUrl}
           />
@@ -27,7 +30,7 @@ export function VideoCard({ video }: VideoCardProps) {
         </div>
         <div className="pt-2">
           <h2 className="line-clamp-2 text-[15px] font-semibold leading-[1.3] tracking-[-0.02em] text-card-foreground">
-            {video.title}
+            {displayTitle}
           </h2>
           <p className="mt-0.5 text-[13px] leading-4 text-muted-foreground">
             {video.duration} <span aria-hidden="true">•</span> Modified {formatDate(video.modifiedAt)}

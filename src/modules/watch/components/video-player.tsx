@@ -8,6 +8,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { formatVideoTitle } from "@/lib/utils";
 import type { Video } from "@/src/modules/list/types";
 
 type VideoPlayerProps = {
@@ -32,6 +33,8 @@ function formatTime(time: number) {
 }
 
 export function VideoPlayer({ video }: VideoPlayerProps) {
+  const displayTitle = formatVideoTitle(video.title);
+
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressFrameRef = useRef<number | null>(null);
@@ -211,7 +214,7 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
       ref={playerContainerRef}
     >
       <video
-        aria-label={`${video.title} video player`}
+        aria-label={`${displayTitle} video player`}
         className="absolute inset-0 h-full w-full cursor-pointer object-contain"
         key={video.streamUrl}
         onClick={togglePlay}

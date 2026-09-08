@@ -1,4 +1,5 @@
 import { Download } from "lucide-react";
+import { formatVideoTitle } from "@/lib/utils";
 import type { Video } from "@/src/modules/list/types";
 import { UpNextList } from "@/src/modules/watch/components/up-next-list";
 import { VideoPlayer } from "@/src/modules/watch/components/video-player";
@@ -9,6 +10,8 @@ type WatchViewProps = {
 };
 
 export function WatchView({ video, upNext }: WatchViewProps) {
+  const displayTitle = formatVideoTitle(video.title);
+
   return (
     <section className="mx-auto max-w-[1440px]" aria-label="Video player">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] xl:gap-5">
@@ -18,7 +21,7 @@ export function WatchView({ video, upNext }: WatchViewProps) {
           <div className="mt-4 flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h1 className="text-[23px] font-bold leading-tight tracking-[-0.04em] text-foreground sm:text-[26px]">
-                {video.title}
+                {displayTitle}
               </h1>
               <p className="mt-2 text-[14px] text-muted-foreground">
                 {video.duration} <span aria-hidden="true">•</span> Modified {formatDate(video.modifiedAt)}

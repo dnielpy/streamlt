@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { formatVideoTitle } from "@/lib/utils";
 import { getVideoById, listVideos } from "@/src/modules/library/server/library";
 import { WatchView } from "@/src/modules/watch/watch-view";
 
@@ -17,9 +18,11 @@ export async function generateMetadata({ params }: WatchPageProps): Promise<Meta
     return { title: "Video not found | Streamlt" };
   }
 
+  const displayTitle = formatVideoTitle(video.title);
+
   return {
-    title: `${video.title} | Streamlt`,
-    description: `Watch ${video.title} on Streamlt.`,
+    title: `${displayTitle} | Streamlt`,
+    description: `Watch ${displayTitle} on Streamlt.`,
   };
 }
 
