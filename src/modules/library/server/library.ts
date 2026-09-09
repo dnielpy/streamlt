@@ -43,7 +43,7 @@ type ListVideosOptions = {
 const snapshots = new Map<string, LibrarySnapshot>();
 const durationCache = new Map<string, { size: number; modifiedAtMs: number; seconds: number | null }>();
 
-function getLibraryRoot() {
+export function getLibraryRoot() {
   const configuredPath = process.env.VIDEO_LIBRARY_PATH?.trim();
 
   if (!configuredPath) {
@@ -345,4 +345,9 @@ export function getVideoMimeType(filePath: string) {
 
 export function getVideoFileName(filePath: string) {
   return path.basename(filePath);
+}
+
+export function clearLibraryCaches() {
+  snapshots.clear();
+  durationCache.clear();
 }
