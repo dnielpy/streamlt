@@ -7,7 +7,7 @@ services:
       VIDEO_LIBRARY_PATH: /media/videos
       VIDEO_CACHE_PATH: /app/data/cache
     volumes:
-      - ${VIDEO_LIBRARY_HOST_PATH:?Set VIDEO_LIBRARY_HOST_PATH in .env}:/media/videos:ro
+      - ${VIDEO_LIBRARY_HOST_PATH:?Set VIDEO_LIBRARY_HOST_PATH in .env}:/media/videos
       - streamlt-cache:/app/data/cache
     restart: unless-stopped
 

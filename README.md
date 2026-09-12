@@ -13,6 +13,7 @@ Streamlt is a responsive local video library built with Next.js. It scans a fold
 - On-demand thumbnails generated with `ffmpeg`.
 - Duration metadata read with `ffprobe`.
 - Download action for every video.
+- Upload MP4 and WebM videos with drag-and-drop, progress tracking, and optional subfolders.
 - Responsive light and dark interface.
 
 ## Run with Docker Compose
@@ -37,7 +38,7 @@ docker compose up --build -d
 
 Open [http://localhost:3000](http://localhost:3000) from any device on the same local network using the server's LAN IP.
 
-The video directory is mounted read-only. Generated thumbnails are stored in the named `streamlt-cache` Docker volume. The image includes both `ffmpeg` and `ffprobe`.
+The video directory is mounted read-write so uploads can be stored from the app. Generated thumbnails are stored in the named `streamlt-cache` Docker volume. The image includes both `ffmpeg` and `ffprobe`.
 
 ## Local development
 
@@ -71,6 +72,7 @@ Only `.mp4` and `.webm` files are included. The scanner ignores hidden files and
 | Route | Description |
 | --- | --- |
 | `/` | Searchable video library. |
+| `/upload` | Upload MP4 and WebM videos to the library or a new subfolder. |
 | `/watch/[videoId]` | Watch view for one local video. |
 | `/api/videos` | Paginated catalog endpoint. |
 | `/api/videos/[videoId]/stream` | Range-aware video stream and download endpoint. |

@@ -27,7 +27,7 @@ export function AppLayoutView({ children }: AppLayoutViewProps) {
         <div className="flex min-h-[calc(100vh-76px)]">
           {!isWatchView && <Sidebar />}
           <main
-            className={`min-w-0 flex-1 px-4 pb-7 pt-6 sm:px-6 ${
+            className={`min-w-0 flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-7 ${
               isWatchView ? "lg:px-6 lg:pt-6" : "lg:px-7 lg:pt-7"
             }`}
           >
