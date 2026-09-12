@@ -1,15 +1,16 @@
 import { Download } from "lucide-react";
 import { formatVideoTitle } from "@/lib/utils";
+import { formatDate } from "@/src/modules/player/utils/date";
 import type { Video } from "@/src/modules/list/types";
 import { UpNextList } from "@/src/modules/watch/components/up-next-list";
 import { VideoPlayer } from "@/src/modules/watch/components/video-player";
 
-type WatchViewProps = {
+type Props = {
   video: Video;
   upNext: Video[];
 };
 
-export function WatchView({ video, upNext }: WatchViewProps) {
+export function WatchView({ video, upNext }: Props) {
   const displayTitle = formatVideoTitle(video.title);
 
   return (
@@ -46,10 +47,3 @@ export function WatchView({ video, upNext }: WatchViewProps) {
   );
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-}
