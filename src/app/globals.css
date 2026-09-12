@@ -131,6 +131,18 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  #nprogress,
+  #nprogress .bar {
+    transition: none !important;
+  }
+
+  #nprogress .peg {
+    box-shadow: none !important;
+    transform: none !important;
+  }
+}
+
 .video-progress-range {
   appearance: none;
   background: transparent;

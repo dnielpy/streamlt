@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { useState, type FormEvent } from "react";
 import { ThemeToggle } from "@/src/modules/layout/components/theme-toggle";
 

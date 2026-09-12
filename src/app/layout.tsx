@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import NextTopLoader from "nextjs-toploader";
 import { AppLayoutContainer } from "@/src/modules/layout/components/app-layout-container";
 import "./globals.css";
 
@@ -18,6 +19,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full bg-background text-foreground">
+        <NextTopLoader
+          color="#FF1B2D"
+          crawl
+          crawlSpeed={200}
+          easing="ease"
+          height={2}
+          initialPosition={0.08}
+          shadow="0 0 8px rgb(255 27 45 / 45%)"
+          showForHashAnchor={false}
+          showSpinner={false}
+          speed={200}
+          zIndex={100}
+        />
         <AppLayoutContainer>{children}</AppLayoutContainer>
       </body>
     </html>
