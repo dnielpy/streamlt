@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { UploadDestination, UploadQueueItem, UploadResponse, UploadResult } from "@/src/modules/upload/types";
+import type { UploadDestination, UploadQueueItem, UploadResponse, UploadResult, UploadTargetProfile } from "@/src/modules/upload/types";
 
 const UPLOAD_CONCURRENCY = 3;
 
@@ -10,8 +10,9 @@ export function createUploadQueueId() {
   return `upload-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
-export function useUpload() {
+export function useUpload({ isAdmin, targetProfiles }: { isAdmin: boolean; targetProfiles: UploadTargetProfile[] }) {
   const [destination, setDestination] = useState<UploadDestination>("root");
+  const [targetProfileId, setTargetProfileId] = useState("");
   const [folderName, setFolderName] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [uploads, setUploads] = useState<UploadQueueItem[]>([]);
@@ -34,13 +35,14 @@ export function useUpload() {
 
   const clearFiles = () => setFiles([]);
 
-  const uploadFile = (item: UploadQueueItem, selectedFolder: string | null) => new Promise<void>((resolve) => {
+  const uploadFile = (item: UploadQueueItem, selectedFolder: string | null, selectedTargetProfileId: string) => new Promise<void>((resolve) => {
     const request = new XMLHttpRequest();
     requests.current.set(item.id, request);
     updateUpload(item.id, { status: "uploading" });
     request.open("POST", "/api/upload");
     request.setRequestHeader("X-File-Name", encodeURIComponent(item.file.name));
     if (selectedFolder) request.setRequestHeader("X-Folder-Name", encodeURIComponent(selectedFolder));
+    if (isAdmin && selectedTargetProfileId) request.setRequestHeader("X-Target-Profile-Id", selectedTargetProfileId);
     request.upload.addEventListener("progress", (event) => {
       if (event.lengthComputable) updateUpload(item.id, { progress: Math.min(99, Math.round((event.loaded / event.total) * 100)) });
     });
@@ -68,7 +70,7 @@ export function useUpload() {
     request.send(item.file);
   });
 
-  const uploadFiles = (filesToUpload: File[], selectedFolder: string | null = null) => {
+  const uploadFiles = (filesToUpload: File[], selectedFolder: string | null = null, selectedTargetProfileId = "") => {
     if (filesToUpload.length === 0) return;
 
     const queued = filesToUpload.map<UploadQueueItem>((file) => ({
@@ -84,7 +86,7 @@ export function useUpload() {
       while (nextIndex < queued.length) {
         const item = queued[nextIndex];
         nextIndex += 1;
-        await uploadFile(item, selectedFolder);
+        await uploadFile(item, selectedFolder, selectedTargetProfileId);
       }
     };
     void Promise.all(Array.from({ length: Math.min(UPLOAD_CONCURRENCY, queued.length) }, worker));
@@ -92,7 +94,7 @@ export function useUpload() {
 
   const startUploads = () => {
     const selectedFolder = destination === "folder" ? folderName.trim() : null;
-    uploadFiles(files, selectedFolder);
+    uploadFiles(files, selectedFolder, targetProfileId);
     clearFiles();
   };
 
@@ -112,5 +114,9 @@ export function useUpload() {
     uploads,
     startUploads,
     clearCompleted,
+    isAdmin,
+    targetProfiles,
+    targetProfileId,
+    setTargetProfileId,
   };
 }

@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { VideoSearch } from "@/src/modules/search/components/video-search";
 import { ThemeToggle } from "@/src/modules/layout/components/theme-toggle";
+import { ProfileMenu } from "@/src/modules/layout/components/profile-menu";
+import type { ProfileSummary } from "@/src/modules/profiles/types";
 
-export function AppBar() {
+export function AppBar({ profile }: { profile: ProfileSummary | null }) {
   return (
     <header className="sticky top-0 z-20 grid h-[66px] grid-cols-[1fr_auto_1fr] items-center border-b border-border bg-background/95 px-4 backdrop-blur sm:px-7 lg:px-10">
       <Link
@@ -26,7 +28,10 @@ export function AppBar() {
 
       <VideoSearch />
 
-      <ThemeToggle />
+      <div className="col-start-3 ml-auto flex items-center gap-2">
+        <ThemeToggle />
+        {profile && <ProfileMenu profile={profile} />}
+      </div>
     </header>
   );
 }

@@ -6,6 +6,7 @@ import {
   getVideoFileName,
   getVideoMimeType,
 } from "@/src/modules/library/server/library";
+import { getAuthenticatedProfile } from "@/src/modules/profiles/server/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,8 +45,10 @@ function parseRange(range: string | null, fileSize: number) {
 }
 
 async function handleMediaRequest(request: Request, context: StreamContext, includeBody: boolean) {
+  const profile = await getAuthenticatedProfile();
+  if (!profile) return new Response("Authentication required", { status: 401 });
   const { videoId } = await context.params;
-  const video = await getVideoFileById(videoId);
+  const video = await getVideoFileById(profile.scope, videoId);
 
   if (!video) {
     return new Response("Video not found", { status: 404 });

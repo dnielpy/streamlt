@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getVideoById, listVideos } from "@/src/modules/library/server/library";
 import { WatchView } from "@/src/modules/watch/components/watch-view";
+import { requireAuthenticatedProfile } from "@/src/modules/profiles/server/session";
 
 export const dynamic = "force-dynamic";
 
@@ -10,13 +11,14 @@ type WatchPageProps = {
 
 export default async function WatchPage({ params }: WatchPageProps) {
   const { videoId } = await params;
-  const video = await getVideoById(videoId);
+  const profile = await requireAuthenticatedProfile(`/watch/${videoId}`);
+  const video = await getVideoById(profile.scope, videoId);
 
   if (!video) {
     notFound();
   }
 
-  const upNext = await listVideos({ limit: 12, excludeId: video.id });
+  const upNext = await listVideos({ scope: profile.scope, limit: 12, excludeId: video.id });
 
   return <WatchView video={video} upNext={upNext.items} />;
 }

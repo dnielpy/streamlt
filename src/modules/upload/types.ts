@@ -2,6 +2,11 @@ export type UploadStatus = "queued" | "uploading" | "complete" | "error";
 
 export type UploadDestination = "root" | "folder";
 
+export type UploadTargetProfile = {
+  id: string;
+  name: string;
+};
+
 export type UploadResult = {
   fileName: string;
   folderName: string | null;

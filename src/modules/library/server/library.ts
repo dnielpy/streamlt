@@ -1,10 +1,11 @@
 import { createHash, randomUUID } from "node:crypto";
-import { stat } from "node:fs/promises";
+import { lstat, stat } from "node:fs/promises";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { formatVideoTitle } from "@/lib/utils";
 import type { Video, VideoPage } from "@/src/modules/list/types";
+import type { LibraryScope } from "@/src/modules/profiles/types";
 
 const PAGE_SIZE = 12;
 const SUGGESTION_LIMIT = 8;
@@ -23,6 +24,7 @@ type VideoFile = {
 
 type LibrarySnapshot = {
   id: string;
+  scopeKey: string;
   query: string;
   createdAt: number;
   files: VideoFile[];
@@ -30,12 +32,14 @@ type LibrarySnapshot = {
 
 type CursorPayload = {
   snapshotId: string;
+  scopeKey: string;
   offset: number;
   query: string;
   excludeId?: string;
 };
 
 type ListVideosOptions = {
+  scope: LibraryScope;
   query?: string;
   cursor?: string;
   limit?: number;
@@ -73,6 +77,7 @@ function decodeCursor(cursor: string): CursorPayload | null {
 
     if (
       typeof payload.snapshotId !== "string" ||
+      typeof payload.scopeKey !== "string" ||
       typeof payload.offset !== "number" ||
       !Number.isInteger(payload.offset) ||
       payload.offset < 0 ||
@@ -97,7 +102,7 @@ function cleanupSnapshots() {
   }
 }
 
-async function walkDirectory(root: string, currentDirectory: string, files: VideoFile[]) {
+async function walkDirectory(globalRoot: string, scopeRoot: string, currentDirectory: string, files: VideoFile[]) {
   let entries;
 
   try {
@@ -114,7 +119,7 @@ async function walkDirectory(root: string, currentDirectory: string, files: Vide
     const absolutePath = path.join(currentDirectory, entry.name);
 
     if (entry.isDirectory()) {
-      await walkDirectory(root, absolutePath, files);
+      await walkDirectory(globalRoot, scopeRoot, absolutePath, files);
       continue;
     }
 
@@ -124,9 +129,10 @@ async function walkDirectory(root: string, currentDirectory: string, files: Vide
 
     try {
       const fileStats = await stat(absolutePath);
-      const relativePath = path.relative(root, absolutePath);
-      const parsedPath = path.parse(relativePath);
-      const relativeFolder = path.dirname(relativePath);
+      const relativePath = path.relative(globalRoot, absolutePath);
+      const scopedRelativePath = path.relative(scopeRoot, absolutePath);
+      const parsedPath = path.parse(scopedRelativePath);
+      const relativeFolder = path.dirname(scopedRelativePath);
 
       files.push({
         id: createVideoId(relativePath),
@@ -143,25 +149,33 @@ async function walkDirectory(root: string, currentDirectory: string, files: Vide
   }
 }
 
-async function scanLibrary(query: string, excludeId?: string) {
+function getScopeRoot(scope: LibraryScope) {
   const root = getLibraryRoot();
+  if (scope.isAdmin) return root;
+  if (!scope.folderName) throw new Error("Profile library directory is unavailable.");
+  return path.join(root, scope.folderName);
+}
+
+async function scanLibrary(scope: LibraryScope, query: string, excludeId?: string) {
+  const root = getLibraryRoot();
+  const scopeRoot = getScopeRoot(scope);
   const files: VideoFile[] = [];
 
   try {
-    const rootStats = await stat(root);
+    const rootStats = scope.isAdmin ? await stat(scopeRoot) : await lstat(scopeRoot);
 
-    if (!rootStats.isDirectory()) {
-      throw new Error("VIDEO_LIBRARY_PATH must point to a directory.");
+    if (!rootStats.isDirectory() || (!scope.isAdmin && rootStats.isSymbolicLink())) {
+      throw new Error(scope.isAdmin ? "VIDEO_LIBRARY_PATH must point to a directory." : "Profile library directory is unavailable.");
     }
   } catch (error) {
-    if (error instanceof Error && error.message === "VIDEO_LIBRARY_PATH must point to a directory.") {
+    if (error instanceof Error && (error.message === "VIDEO_LIBRARY_PATH must point to a directory." || error.message === "Profile library directory is unavailable.")) {
       throw error;
     }
 
-    throw new Error(`Video library directory not found: ${root}`);
+    throw new Error(scope.isAdmin ? `Video library directory not found: ${root}` : "Profile library directory is unavailable.");
   }
 
-  await walkDirectory(root, root, files);
+  await walkDirectory(root, scopeRoot, scopeRoot, files);
 
   const normalizedQuery = query.trim().toLocaleLowerCase();
   const filteredFiles = files
@@ -184,24 +198,26 @@ async function scanLibrary(query: string, excludeId?: string) {
   return filteredFiles;
 }
 
-async function createSnapshot(query: string, excludeId?: string) {
+async function createSnapshot(scope: LibraryScope, query: string, excludeId?: string) {
   cleanupSnapshots();
 
   const snapshot: LibrarySnapshot = {
     id: randomUUID(),
+    scopeKey: scope.key,
     query,
     createdAt: Date.now(),
-    files: await scanLibrary(query, excludeId),
+    files: await scanLibrary(scope, query, excludeId),
   };
 
   snapshots.set(snapshot.id, snapshot);
   return snapshot;
 }
 
-function findVideoInSnapshots(videoId: string) {
+function findVideoInSnapshots(scope: LibraryScope, videoId: string) {
   cleanupSnapshots();
 
   for (const snapshot of snapshots.values()) {
+    if (snapshot.scopeKey !== scope.key) continue;
     const file = snapshot.files.find((candidate) => candidate.id === videoId);
 
     if (file) {
@@ -280,7 +296,7 @@ async function serializeVideo(file: VideoFile): Promise<Video> {
   };
 }
 
-export async function listVideos({ query = "", cursor, limit = PAGE_SIZE, excludeId }: ListVideosOptions = {}): Promise<VideoPage> {
+export async function listVideos({ scope, query = "", cursor, limit = PAGE_SIZE, excludeId }: ListVideosOptions): Promise<VideoPage> {
   const safeLimit = Math.min(Math.max(Math.floor(limit) || PAGE_SIZE, 1), PAGE_SIZE);
   const decodedCursor = cursor ? decodeCursor(cursor) : null;
   let snapshot: LibrarySnapshot | undefined;
@@ -288,15 +304,16 @@ export async function listVideos({ query = "", cursor, limit = PAGE_SIZE, exclud
   let effectiveQuery = query.trim();
   let effectiveExcludeId = excludeId;
 
-  if (decodedCursor) {
+  if (decodedCursor?.scopeKey === scope.key) {
     snapshot = snapshots.get(decodedCursor.snapshotId);
+    if (snapshot?.scopeKey !== scope.key) snapshot = undefined;
     offset = decodedCursor.offset;
     effectiveQuery = decodedCursor.query;
     effectiveExcludeId = decodedCursor.excludeId;
   }
 
   if (!snapshot) {
-    snapshot = await createSnapshot(effectiveQuery, effectiveExcludeId);
+    snapshot = await createSnapshot(scope, effectiveQuery, effectiveExcludeId);
     offset = 0;
   }
 
@@ -306,6 +323,7 @@ export async function listVideos({ query = "", cursor, limit = PAGE_SIZE, exclud
   const nextCursor = nextOffset < snapshot.files.length
     ? encodeCursor({
         snapshotId: snapshot.id,
+        scopeKey: scope.key,
         offset: nextOffset,
         query: snapshot.query,
         excludeId: effectiveExcludeId,
@@ -315,7 +333,7 @@ export async function listVideos({ query = "", cursor, limit = PAGE_SIZE, exclud
   return { items, nextCursor };
 }
 
-export async function suggestVideoTitles(query: string, limit = SUGGESTION_LIMIT): Promise<string[]> {
+export async function suggestVideoTitles(scope: LibraryScope, query: string, limit = SUGGESTION_LIMIT): Promise<string[]> {
   const normalizedQuery = query.trim();
 
   if (!normalizedQuery) {
@@ -323,7 +341,7 @@ export async function suggestVideoTitles(query: string, limit = SUGGESTION_LIMIT
   }
 
   const safeLimit = Math.min(Math.max(Math.floor(limit) || SUGGESTION_LIMIT, 1), SUGGESTION_LIMIT);
-  const files = await scanLibrary(normalizedQuery);
+  const files = await scanLibrary(scope, normalizedQuery);
   const seenTitles = new Set<string>();
   const suggestions: string[] = [];
 
@@ -346,19 +364,19 @@ export async function suggestVideoTitles(query: string, limit = SUGGESTION_LIMIT
   return suggestions;
 }
 
-export async function getVideoFileById(videoId: string) {
-  const cachedFile = findVideoInSnapshots(videoId);
+export async function getVideoFileById(scope: LibraryScope, videoId: string) {
+  const cachedFile = findVideoInSnapshots(scope, videoId);
 
   if (cachedFile) {
     return cachedFile;
   }
 
-  const snapshot = await createSnapshot("");
+  const snapshot = await createSnapshot(scope, "");
   return snapshot.files.find((file) => file.id === videoId) ?? null;
 }
 
-export async function getVideoById(videoId: string) {
-  const file = await getVideoFileById(videoId);
+export async function getVideoById(scope: LibraryScope, videoId: string) {
+  const file = await getVideoFileById(scope, videoId);
 
   return file ? serializeVideo(file) : null;
 }

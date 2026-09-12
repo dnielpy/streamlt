@@ -6,6 +6,7 @@ import {
   getVideoCacheRoot,
   getVideoFileById,
 } from "@/src/modules/library/server/library";
+import { getAuthenticatedProfile } from "@/src/modules/profiles/server/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,8 +56,10 @@ function generateThumbnail(inputPath: string, outputPath: string) {
 }
 
 export async function GET(_request: Request, context: ThumbnailContext) {
+  const profile = await getAuthenticatedProfile();
+  if (!profile) return new Response("Authentication required", { status: 401 });
   const { videoId } = await context.params;
-  const video = await getVideoFileById(videoId);
+  const video = await getVideoFileById(profile.scope, videoId);
 
   if (!video) {
     return new Response("Video not found", { status: 404 });
@@ -69,7 +72,7 @@ export async function GET(_request: Request, context: ThumbnailContext) {
 
     return new Response(new Uint8Array(image), {
       headers: {
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": "private, no-store",
         "Content-Type": "image/jpeg",
       },
     });
@@ -96,7 +99,7 @@ export async function GET(_request: Request, context: ThumbnailContext) {
 
     return new Response(new Uint8Array(image), {
       headers: {
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": "private, no-store",
         "Content-Type": "image/jpeg",
       },
     });

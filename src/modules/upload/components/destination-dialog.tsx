@@ -15,6 +15,10 @@ export function DestinationDialog() {
     totalSize,
     clearFiles: onCancel,
     startUploads: onConfirm,
+    isAdmin,
+    targetProfiles,
+    targetProfileId,
+    setTargetProfileId,
   } = useUploadContext();
   const open = fileCount > 0;
 
@@ -42,6 +46,20 @@ export function DestinationDialog() {
             </div>
 
             <form className="mt-6" onSubmit={(event) => { event.preventDefault(); if (validDestination) onConfirm(); }}>
+              {isAdmin && (
+                <label className="mb-5 block text-sm font-medium">
+                  Profile library
+                  <select
+                    value={targetProfileId}
+                    onChange={(event) => setTargetProfileId(event.currentTarget.value)}
+                    className="mt-2 h-12 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/30"
+                  >
+                    <option value="">Admin library root</option>
+                    {targetProfiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}
+                  </select>
+                  <span className="mt-1.5 block text-xs font-normal text-muted-foreground">Choose who should have access to these videos.</span>
+                </label>
+              )}
               <fieldset className="grid gap-3">
                 <legend className="sr-only">Upload destination</legend>
                 <button
@@ -53,7 +71,7 @@ export function DestinationDialog() {
                   <span className="grid size-11 shrink-0 place-items-center rounded-full bg-background text-foreground shadow-sm"><Library className="size-5" /></span>
                   <span>
                     <span className="block text-sm font-semibold">Library root</span>
-                    <span className="mt-0.5 block text-sm text-muted-foreground">Store videos alongside your current library.</span>
+                    <span className="mt-0.5 block text-sm text-muted-foreground">Store videos in the selected profile&apos;s library.</span>
                   </span>
                 </button>
                 <button

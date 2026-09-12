@@ -7,6 +7,8 @@ import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { pipeline } from "node:stream/promises";
 import { getLibraryRoot } from "@/src/modules/library/server/library";
 import type { UploadResult } from "@/src/modules/upload/types";
+import { getProfileRecord } from "@/src/modules/profiles/server/profile-store";
+import type { LibraryScope } from "@/src/modules/profiles/types";
 
 const MAX_NAME_BYTES = 240;
 const MAX_COLLISION_ATTEMPTS = 10_000;
@@ -42,23 +44,39 @@ export function validateFolderName(value: string | null | undefined) {
   return folderName;
 }
 
-async function getDestinationDirectory(folderName: string | null) {
+async function getDestinationDirectory(scope: LibraryScope, targetProfileId: string | null, folderName: string | null) {
   const root = getLibraryRoot();
+  let baseDirectory = root;
+
+  if (scope.isAdmin && targetProfileId) {
+    const targetProfile = await getProfileRecord(targetProfileId);
+    if (!targetProfile || targetProfile.isAdmin || !targetProfile.folderName) {
+      throw new UploadError("The selected profile is unavailable.", 404);
+    }
+    baseDirectory = path.join(root, targetProfile.folderName);
+  } else if (!scope.isAdmin) {
+    if (targetProfileId) throw new UploadError("You cannot upload to another profile.", 403);
+    if (!scope.folderName) throw new UploadError("Profile library directory is unavailable.", 500);
+    baseDirectory = path.join(root, scope.folderName);
+  }
+
   let rootStats;
   try {
-    rootStats = await stat(root);
+    rootStats = scope.isAdmin && !targetProfileId ? await stat(baseDirectory) : await lstat(baseDirectory);
   } catch {
     throw new UploadError("The configured video library directory is unavailable.", 500);
   }
-  if (!rootStats.isDirectory()) throw new UploadError("VIDEO_LIBRARY_PATH must point to a directory.", 500);
+  if (!rootStats.isDirectory() || (!(scope.isAdmin && !targetProfileId) && rootStats.isSymbolicLink())) {
+    throw new UploadError("The selected profile directory is unavailable.", 500);
+  }
   try {
     await access(root, constants.W_OK);
   } catch {
     throw new UploadError("The video library is not writable.", 500);
   }
 
-  if (!folderName) return root;
-  const destination = path.join(root, folderName);
+  if (!folderName) return baseDirectory;
+  const destination = path.join(baseDirectory, folderName);
   try {
     await mkdir(destination);
   } catch (error) {
@@ -104,14 +122,18 @@ export async function saveUpload({
   body,
   fileName: rawFileName,
   folderName: rawFolderName,
+  targetProfileId = null,
+  scope,
 }: {
   body: ReadableStream<Uint8Array> | null;
   fileName: string;
   folderName?: string | null;
+  targetProfileId?: string | null;
+  scope: LibraryScope;
 }): Promise<UploadResult> {
   const fileName = validateVideoFileName(rawFileName);
   const folderName = validateFolderName(rawFolderName);
-  const directory = await getDestinationDirectory(folderName);
+  const directory = await getDestinationDirectory(scope, targetProfileId, folderName);
   const temporaryPath = path.join(directory, `.streamlt-upload-${randomUUID()}.part`);
 
   try {

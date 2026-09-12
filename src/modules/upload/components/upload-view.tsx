@@ -7,12 +7,13 @@ import { UploadDropzone } from "@/src/modules/upload/components/upload-dropzone"
 import { UploadList } from "@/src/modules/upload/components/upload-list";
 import { createUploadQueueId } from "@/src/modules/upload/hooks/use-upload";
 import { UploadProvider } from "@/src/modules/upload/components/upload-provider";
+import type { UploadTargetProfile } from "@/src/modules/upload/types";
 
 export { createUploadQueueId };
 
-export function UploadView() {
+export function UploadView({ isAdmin, targetProfiles }: { isAdmin: boolean; targetProfiles: UploadTargetProfile[] }) {
   return (
-    <UploadProvider>
+    <UploadProvider isAdmin={isAdmin} targetProfiles={targetProfiles}>
       <div className="mx-auto w-full max-w-6xl px-0 sm:px-1">
         <div className="mb-6 flex items-end justify-between gap-4 px-1">
           <div>
