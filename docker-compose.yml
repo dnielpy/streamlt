@@ -6,6 +6,9 @@ services:
     environment:
       VIDEO_LIBRARY_PATH: /media/videos
       VIDEO_CACHE_PATH: /app/data/cache
+      DOWNLOAD_MANAGER_API_URL: ${DOWNLOAD_MANAGER_API_URL:?Set DOWNLOAD_MANAGER_API_URL in .env}
+      DOWNLOAD_MANAGER_PUBLIC_URL: ${DOWNLOAD_MANAGER_PUBLIC_URL:?Set DOWNLOAD_MANAGER_PUBLIC_URL in .env}
+      DOWNLOAD_MANAGER_API_KEY: ${DOWNLOAD_MANAGER_API_KEY:?Set DOWNLOAD_MANAGER_API_KEY in .env}
     volumes:
       - ${VIDEO_LIBRARY_HOST_PATH:?Set VIDEO_LIBRARY_HOST_PATH in .env}:/media/videos
       - streamlt-cache:/app/data/cache
