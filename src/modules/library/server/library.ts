@@ -3,9 +3,11 @@ import { stat } from "node:fs/promises";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { formatVideoTitle } from "@/lib/utils";
 import type { Video, VideoPage } from "@/src/modules/list/types";
 
 const PAGE_SIZE = 12;
+const SUGGESTION_LIMIT = 8;
 const SNAPSHOT_TTL_MS = 10 * 60 * 1000;
 const SUPPORTED_EXTENSIONS = new Set([".mp4", ".webm"]);
 
@@ -168,7 +170,7 @@ async function scanLibrary(query: string, excludeId?: string) {
         return true;
       }
 
-      return `${file.title} ${file.relativePath}`.toLocaleLowerCase().includes(normalizedQuery);
+      return `${formatVideoTitle(file.title)} ${file.title} ${file.relativePath}`.toLocaleLowerCase().includes(normalizedQuery);
     })
     .filter((file) => file.id !== excludeId)
     .sort((first, second) => {
@@ -311,6 +313,37 @@ export async function listVideos({ query = "", cursor, limit = PAGE_SIZE, exclud
     : null;
 
   return { items, nextCursor };
+}
+
+export async function suggestVideoTitles(query: string, limit = SUGGESTION_LIMIT): Promise<string[]> {
+  const normalizedQuery = query.trim();
+
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  const safeLimit = Math.min(Math.max(Math.floor(limit) || SUGGESTION_LIMIT, 1), SUGGESTION_LIMIT);
+  const files = await scanLibrary(normalizedQuery);
+  const seenTitles = new Set<string>();
+  const suggestions: string[] = [];
+
+  for (const file of files) {
+    const displayTitle = formatVideoTitle(file.title);
+    const normalizedTitle = displayTitle.toLocaleLowerCase();
+
+    if (seenTitles.has(normalizedTitle)) {
+      continue;
+    }
+
+    seenTitles.add(normalizedTitle);
+    suggestions.push(displayTitle);
+
+    if (suggestions.length >= safeLimit) {
+      break;
+    }
+  }
+
+  return suggestions;
 }
 
 export async function getVideoFileById(videoId: string) {
