@@ -2,7 +2,7 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { FolderPlus, Library, X } from "lucide-react";
-import { useUploadContext } from "@/src/modules/upload/upload-context";
+import { useUploadContext } from "@/src/modules/upload/hooks/use-upload-context";
 import { formatBytes } from "@/src/modules/upload/utils/format-bytes";
 
 export function DestinationDialog() {

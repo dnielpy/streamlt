@@ -1,4 +1,4 @@
-import { VideoCard } from "@/src/components/common/video-card";
+import { VideoCard } from "@/src/modules/common/components/video-card";
 import type { Video } from "@/src/modules/list/types";
 
 type UpNextListProps = {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AppLayoutContainer } from "@/src/modules/layout/containers/app-layout-container";
+import { AppLayoutContainer } from "@/src/modules/layout/components/app-layout-container";
 import "./globals.css";
 
 export const metadata: Metadata = {

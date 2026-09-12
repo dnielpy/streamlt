@@ -2,7 +2,7 @@
 
 import { CloudUpload, FolderOpen } from "lucide-react";
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
-import { useUploadContext } from "@/src/modules/upload/upload-context";
+import { useUploadContext } from "@/src/modules/upload/hooks/use-upload-context";
 
 export function UploadDropzone() {
   const inputRef = useRef<HTMLInputElement>(null);

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatVideoTitle } from "@/lib/utils";
-import { VideoThumbnail } from "@/src/components/common/video-thumbnail";
+import { VideoThumbnail } from "@/src/modules/common/components/video-thumbnail";
 import type { Video } from "@/src/modules/list/types";
 
 type VideoCardProps = {

@@ -1,4 +1,4 @@
-import { ListContainer } from "@/src/modules/list/containers/list-container";
+import { ListContainer } from "@/src/modules/list/components/list-container";
 
 export const dynamic = "force-dynamic";
 

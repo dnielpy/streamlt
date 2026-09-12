@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getVideoById, listVideos } from "@/src/modules/library/server/library";
-import { WatchView } from "@/src/modules/watch/watch-view";
+import { WatchView } from "@/src/modules/watch/components/watch-view";
 
 export const dynamic = "force-dynamic";
 

@@ -6,7 +6,7 @@ import { DestinationDialog } from "@/src/modules/upload/components/destination-d
 import { UploadDropzone } from "@/src/modules/upload/components/upload-dropzone";
 import { UploadList } from "@/src/modules/upload/components/upload-list";
 import { createUploadQueueId } from "@/src/modules/upload/hooks/use-upload";
-import { UploadProvider } from "@/src/modules/upload/upload-context";
+import { UploadProvider } from "@/src/modules/upload/components/upload-provider";
 
 export { createUploadQueueId };
 

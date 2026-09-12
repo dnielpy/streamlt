@@ -1,4 +1,4 @@
-import { VideoListView } from "@/src/modules/list/video-list-view";
+import { VideoListView } from "@/src/modules/list/components/video-list-view";
 import type { VideoPage } from "@/src/modules/list/types";
 import { listVideos } from "@/src/modules/library/server/library";
 
