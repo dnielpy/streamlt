@@ -13,7 +13,7 @@ export { createUploadQueueId };
 export function UploadView() {
   return (
     <UploadProvider>
-      <div className="mx-auto w-full max-w-5xl px-1 sm:px-2">
+      <div className="mx-auto w-full max-w-6xl px-0 sm:px-1">
         <div className="mb-6 flex items-end justify-between gap-4 px-1">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Library</p>
