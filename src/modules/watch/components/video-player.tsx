@@ -7,11 +7,17 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { formatVideoTitle } from "@/lib/utils";
+import {
+  DEFAULT_PLAYBACK_STATE,
+  usePersistentPlayer,
+  type PlaybackState,
+} from "@/src/modules/player/contexts/persistent-player-context";
 import type { Video } from "@/src/modules/list/types";
 
 type VideoPlayerProps = {
+  variant?: "full" | "mini";
   video: Video;
 };
 
@@ -35,21 +41,56 @@ function formatTime(time: number) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-export function VideoPlayer({ video }: VideoPlayerProps) {
+export function VideoPlayer({ variant = "full", video }: VideoPlayerProps) {
+  const { activeVideo, persistPlayback, playbackState, setActiveVideo } = usePersistentPlayer();
+  const initialPlayback = activeVideo?.id === video.id ? playbackState : undefined;
+  const initialCurrentTime = initialPlayback?.currentTime ?? 0;
+  const initialIsMuted = initialPlayback?.isMuted ?? false;
+  const initialVolume = initialPlayback?.volume ?? 1;
   const displayTitle = formatVideoTitle(video.title);
 
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressFrameRef = useRef<number | null>(null);
   const controlsHideTimeoutRef = useRef<number | null>(null);
-  const lastVolumeRef = useRef(1);
-  const [currentTime, setCurrentTime] = useState(0);
+  const initialPlaybackRef = useRef<PlaybackState>(initialPlayback ?? DEFAULT_PLAYBACK_STATE);
+  const currentTimeRef = useRef(initialCurrentTime);
+  const isMutedRef = useRef(initialIsMuted);
+  const isPlayingRef = useRef(false);
+  const lastPersistedAtRef = useRef(0);
+  const lastVolumeRef = useRef(initialVolume);
+  const volumeRef = useRef(initialVolume);
+  const [currentTime, setCurrentTime] = useState(initialCurrentTime);
   const [duration, setDuration] = useState(0);
   const [hasError, setHasError] = useState(!video.streamUrl);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(initialIsMuted);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(initialVolume);
+
+  const persistCurrentPlayback = useCallback(() => {
+    persistPlayback({
+      currentTime: currentTimeRef.current,
+      isMuted: isMutedRef.current,
+      isPlaying: isPlayingRef.current,
+      volume: volumeRef.current,
+    });
+  }, [persistPlayback]);
+
+  const maybePersistCurrentPlayback = useCallback(() => {
+    const now = Date.now();
+
+    if (now - lastPersistedAtRef.current < 500) {
+      return;
+    }
+
+    lastPersistedAtRef.current = now;
+    persistCurrentPlayback();
+  }, [persistCurrentPlayback]);
+
+  useEffect(() => {
+    setActiveVideo(video);
+  }, [setActiveVideo, video]);
 
   useEffect(() => {
     const player = videoRef.current;
@@ -58,15 +99,41 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
       return;
     }
 
-    setCurrentTime(0);
+    const startingPlayback = initialPlaybackRef.current;
+
+    currentTimeRef.current = startingPlayback.currentTime;
+    isMutedRef.current = startingPlayback.isMuted;
+    isPlayingRef.current = false;
+    lastVolumeRef.current = startingPlayback.volume;
+    volumeRef.current = startingPlayback.volume;
+    setCurrentTime(startingPlayback.currentTime);
     setDuration(0);
     setHasError(!video.streamUrl);
     setIsPlaying(false);
+    setIsMuted(startingPlayback.isMuted);
     setShowControls(true);
+    setVolume(startingPlayback.volume);
 
     const handleLoadedMetadata = () => {
       setDuration(Number.isFinite(player.duration) ? player.duration : 0);
       setHasError(false);
+
+      const nextTime = Number.isFinite(player.duration)
+        ? Math.min(Math.max(startingPlayback.currentTime, 0), player.duration)
+        : Math.max(startingPlayback.currentTime, 0);
+
+      player.currentTime = nextTime;
+      player.muted = startingPlayback.isMuted;
+      player.volume = startingPlayback.volume;
+      currentTimeRef.current = nextTime;
+      setCurrentTime(nextTime);
+
+      if (startingPlayback.isPlaying) {
+        void player.play().catch(() => {
+          isPlayingRef.current = false;
+          setIsPlaying(false);
+        });
+      }
     };
     const stopProgressLoop = () => {
       if (progressFrameRef.current !== null) {
@@ -75,7 +142,9 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
       }
     };
     const updateProgress = () => {
+      currentTimeRef.current = player.currentTime;
       setCurrentTime(player.currentTime);
+      maybePersistCurrentPlayback();
 
       if (!player.paused && !player.ended) {
         progressFrameRef.current = requestAnimationFrame(updateProgress);
@@ -88,32 +157,50 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
         progressFrameRef.current = requestAnimationFrame(updateProgress);
       }
     };
-    const handleTimeUpdate = () => setCurrentTime(player.currentTime);
+    const handleTimeUpdate = () => {
+      currentTimeRef.current = player.currentTime;
+      setCurrentTime(player.currentTime);
+      maybePersistCurrentPlayback();
+    };
     const handlePlay = () => {
+      isPlayingRef.current = true;
       setIsPlaying(true);
+      persistCurrentPlayback();
       startProgressLoop();
     };
     const handlePause = () => {
+      isPlayingRef.current = false;
       setIsPlaying(false);
       setShowControls(true);
       stopProgressLoop();
+      currentTimeRef.current = player.currentTime;
       setCurrentTime(player.currentTime);
+      persistCurrentPlayback();
     };
     const handleVolumeChange = () => {
+      isMutedRef.current = player.muted || player.volume === 0;
+      volumeRef.current = player.volume;
+      lastVolumeRef.current = player.volume || lastVolumeRef.current;
+      persistCurrentPlayback();
       setIsMuted(player.muted || player.volume === 0);
       setVolume(player.volume);
     };
     const handleEnded = () => {
+      isPlayingRef.current = false;
       setIsPlaying(false);
       setShowControls(true);
       stopProgressLoop();
+      currentTimeRef.current = player.currentTime;
       setCurrentTime(player.currentTime);
+      persistCurrentPlayback();
     };
     const handleError = () => {
+      isPlayingRef.current = false;
       setIsPlaying(false);
       setShowControls(true);
       setHasError(true);
       stopProgressLoop();
+      persistCurrentPlayback();
     };
 
     player.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -133,8 +220,9 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
       player.removeEventListener("ended", handleEnded);
       player.removeEventListener("error", handleError);
       stopProgressLoop();
+      persistCurrentPlayback();
     };
-  }, [video.streamUrl]);
+  }, [maybePersistCurrentPlayback, persistCurrentPlayback, video.streamUrl]);
 
   const togglePlay = async () => {
     const player = videoRef.current;
@@ -163,7 +251,9 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
     }
 
     player.currentTime = nextTime;
+    currentTimeRef.current = nextTime;
     setCurrentTime(nextTime);
+    persistCurrentPlayback();
   };
 
   const handleVolume = (value: string) => {
@@ -176,6 +266,8 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
 
     player.volume = nextVolume;
     player.muted = nextVolume === 0;
+    volumeRef.current = nextVolume;
+    isMutedRef.current = nextVolume === 0;
 
     if (nextVolume > 0) {
       lastVolumeRef.current = nextVolume;
@@ -314,7 +406,7 @@ export function VideoPlayer({ video }: VideoPlayerProps) {
 
   return (
     <div
-      className="group relative aspect-video overflow-hidden rounded-xl bg-black shadow-sm"
+      className={`group relative aspect-video overflow-hidden bg-black ${variant === "mini" ? "" : "rounded-xl shadow-sm"}`}
       onFocusCapture={revealControls}
       onMouseMove={revealControls}
       onTouchStart={revealControls}

@@ -17,7 +17,7 @@ export function WatchView({ video, upNext }: Props) {
     <section className="mx-auto max-w-[1440px]" aria-label="Video player">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px] xl:gap-5">
         <div className="min-w-0 lg:sticky lg:top-[82px] lg:self-start">
-          <VideoPlayer video={video} />
+          <VideoPlayer key={video.id} video={video} />
 
           <div className="mt-4 flex items-start justify-between gap-4">
             <div className="min-w-0">
