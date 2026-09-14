@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Download, House, Upload, Users } from "lucide-react";
+import { House, Upload, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { ProfileSummary } from "@/src/modules/profiles/types";
 
 const baseNavigation = [
   { href: "/", label: "Home", icon: House },
   { href: "/upload", label: "Upload", icon: Upload },
-  { href: "/download", label: "Download", icon: Download },
 ];
 
 export function Sidebar({ profile }: { profile: ProfileSummary | null }) {

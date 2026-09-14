@@ -14,7 +14,6 @@ Streamlt is a responsive local video library built with Next.js. It scans a fold
 - Duration metadata read with `ffprobe`.
 - Download action for every video.
 - Upload MP4 and WebM videos with drag-and-drop, progress tracking, and optional subfolders.
-- Send remote video URLs to Download Manager and store completed files in the active profile library.
 - Netflix-style profile selection with four-digit PINs and browser-session authentication.
 - Private per-profile libraries, plus an immutable Admin profile with access to every video.
 - Admin profile creation, editing, avatar selection, and non-destructive deletion.
@@ -32,9 +31,6 @@ Then edit `.env`:
 
 ```env
 VIDEO_LIBRARY_HOST_PATH=/absolute/path/to/your/videos
-DOWNLOAD_MANAGER_API_URL=http://server-address:3001
-DOWNLOAD_MANAGER_PUBLIC_URL=http://server-address:3001
-DOWNLOAD_MANAGER_API_KEY=replace-with-a-long-random-secret
 ```
 
 Start the server:
@@ -46,8 +42,6 @@ docker compose up --build -d
 Open [http://localhost:3000](http://localhost:3000) from any device on the same local network using the server's LAN IP.
 
 The video directory is mounted read-write so uploads can be stored from the app. Generated thumbnails are stored in the named `streamlt-cache` Docker volume. The image includes both `ffmpeg` and `ffprobe`.
-
-Download Manager must mount the same host directory as its `DOWNLOADS_HOST_PATH`, and its `STREAMLT_API_KEY` must match Streamlt's `DOWNLOAD_MANAGER_API_KEY`. `DOWNLOAD_MANAGER_API_URL` is used by the Streamlt server; `DOWNLOAD_MANAGER_PUBLIC_URL` is the browser-facing link shown after a download is queued.
 
 On first launch, Streamlt creates `VIDEO_LIBRARY_PATH/.streamlt/profiles.json` and an `Admin` profile with PIN `1816`. Change access to the host video directory accordingly; profile metadata and PIN hashes are stored there with the media library.
 
@@ -64,9 +58,6 @@ Set the server-side library path before starting Next.js:
 ```bash
 VIDEO_LIBRARY_PATH=/absolute/path/to/your/videos \
 VIDEO_CACHE_PATH=/absolute/path/to/a/writable/cache \
-DOWNLOAD_MANAGER_API_URL=http://127.0.0.1:3001 \
-DOWNLOAD_MANAGER_PUBLIC_URL=http://127.0.0.1:3001 \
-DOWNLOAD_MANAGER_API_KEY=your-shared-download-manager-secret \
 pnpm dev
 ```
 
@@ -78,9 +69,6 @@ For real durations and thumbnails, install `ffmpeg` locally. If it is not instal
 | --- | --- | --- |
 | `VIDEO_LIBRARY_PATH` | Absolute server-side path containing the video library. | Yes |
 | `VIDEO_CACHE_PATH` | Writable folder for generated thumbnails. | No; defaults to `.streamlt-cache`. |
-| `DOWNLOAD_MANAGER_API_URL` | Server-reachable Download Manager base URL. | Yes for remote downloads. |
-| `DOWNLOAD_MANAGER_PUBLIC_URL` | Browser-reachable Download Manager dashboard URL. | Yes for the dashboard link. |
-| `DOWNLOAD_MANAGER_API_KEY` | Shared secret matching Download Manager's `STREAMLT_API_KEY`. | Yes for remote downloads. |
 
 Only `.mp4` and `.webm` files are included. The scanner ignores hidden files and directories and does not follow symbolic links. New or removed files appear after a page reload or a new search.
 
@@ -110,9 +98,7 @@ The four-digit PIN is intended as a household privacy control on a trusted netwo
 | `/profiles` | Profile selector and PIN entry. |
 | `/admin/profiles` | Admin-only profile management. |
 | `/upload` | Upload MP4 and WebM videos to the library or a new subfolder. |
-| `/download` | Send a remote video URL to Download Manager for the active profile. |
 | `/watch/[videoId]` | Watch view for one local video. |
-| `/api/downloads` | Authenticated Streamlt-to-Download Manager bridge. |
 | `/api/videos` | Paginated catalog endpoint. |
 | `/api/videos/[videoId]/stream` | Range-aware video stream and download endpoint. |
 | `/api/videos/[videoId]/thumbnail` | Cached JPEG thumbnail endpoint. |
