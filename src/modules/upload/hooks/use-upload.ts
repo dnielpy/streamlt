@@ -39,7 +39,7 @@ export function useUpload({ isAdmin, targetProfiles }: { isAdmin: boolean; targe
     const request = new XMLHttpRequest();
     requests.current.set(item.id, request);
     updateUpload(item.id, { status: "uploading" });
-    request.open("POST", "/api/upload");
+    request.open("POST", "/streamlt/api/upload");
     request.setRequestHeader("X-File-Name", encodeURIComponent(item.file.name));
     if (selectedFolder) request.setRequestHeader("X-Folder-Name", encodeURIComponent(selectedFolder));
     if (isAdmin && selectedTargetProfileId) request.setRequestHeader("X-Target-Profile-Id", selectedTargetProfileId);

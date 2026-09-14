@@ -1,18 +1,20 @@
 "use client";
 
 import type { ReactNode } from "react";
+import type { HomeServerIdentity } from "@home-server/contracts";
+import { HomeServerShell } from "@home-server/shell";
 import { usePathname } from "next/navigation";
 import { ThemeProvider } from "next-themes";
-import { AppBar } from "@/src/modules/layout/components/app-bar";
-import { Sidebar } from "@/src/modules/layout/components/sidebar";
+import { VideoSearch } from "@/src/modules/search/components/video-search";
 import { MiniPlayer } from "@/src/modules/player/components/mini-player";
 import { PersistentPlayerProvider } from "@/src/modules/player/contexts/persistent-player-context";
 
 type AppLayoutViewProps = {
   children: ReactNode;
+  identity: HomeServerIdentity | null;
 };
 
-export function AppLayoutView({ children }: AppLayoutViewProps) {
+export function AppLayoutView({ children, identity }: AppLayoutViewProps) {
   const pathname = usePathname();
   const isProfileSelector = pathname === "/profiles";
   const isWatchView = pathname.startsWith("/watch");
@@ -28,10 +30,8 @@ export function AppLayoutView({ children }: AppLayoutViewProps) {
       storageKey="streamlt-theme"
     >
       <PersistentPlayerProvider>
-        <div className="min-h-screen bg-background">
-          <AppBar />
-          <div className="flex min-h-[calc(100vh-76px)]">
-            {!isWatchView && <Sidebar />}
+        <HomeServerShell currentZone="streamlt" identity={identity} headerSlot={<VideoSearch />}>
+          <div className="min-h-[calc(100vh-68px)]">
             <main
               className={`min-w-0 flex-1 px-4 pb-24 pt-6 sm:px-6 lg:pb-7 ${
                 isWatchView ? "lg:px-6 lg:pt-6" : "lg:px-7 lg:pt-7"
@@ -41,7 +41,7 @@ export function AppLayoutView({ children }: AppLayoutViewProps) {
             </main>
           </div>
           <MiniPlayer />
-        </div>
+        </HomeServerShell>
       </PersistentPlayerProvider>
     </ThemeProvider>
   );

@@ -26,7 +26,7 @@ export function useVideoSearchSuggestions(query: string) {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(async () => {
       try {
-        const response = await fetch(`/api/videos/suggestions?q=${encodeURIComponent(trimmedQuery)}`, {
+        const response = await fetch(`/streamlt/api/videos/suggestions?q=${encodeURIComponent(trimmedQuery)}`, {
           signal: controller.signal,
         });
 

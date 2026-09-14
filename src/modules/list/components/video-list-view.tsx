@@ -35,7 +35,7 @@ export function VideoListView({ initialVideos, initialCursor, query, error }: Vi
         params.set("q", query);
       }
 
-      const response = await fetch(`/api/videos?${params.toString()}`);
+      const response = await fetch(`/streamlt/api/videos?${params.toString()}`);
 
       if (!response.ok) {
         throw new Error("Unable to load more videos.");

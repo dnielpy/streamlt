@@ -291,8 +291,8 @@ async function serializeVideo(file: VideoFile): Promise<Video> {
     modifiedAt: new Date(file.modifiedAtMs).toISOString(),
     folder: file.folder,
     size: file.size,
-    streamUrl: `/api/videos/${file.id}/stream`,
-    thumbnailUrl: `/api/videos/${file.id}/thumbnail`,
+    streamUrl: `/streamlt/api/videos/${file.id}/stream`,
+    thumbnailUrl: `/streamlt/api/videos/${file.id}/thumbnail`,
   };
 }
 

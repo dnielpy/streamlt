@@ -1,5 +1,7 @@
 # Streamlt
 
+> This application is supported as a Home Server submodule and expects the central gateway identity and shared workspace packages.
+
 Streamlt is a responsive local video library built with Next.js. It scans a folder on the server, creates a searchable catalog, and streams MP4 and WebM files directly to the browser.
 
 ## Features

@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import NextTopLoader from "nextjs-toploader";
 import { AppLayoutContainer } from "@/src/modules/layout/components/app-layout-container";
 import "./globals.css";
+import "@home-server/shell/styles.css";
 
 export const metadata: Metadata = {
   title: "LocalTube",
   description: "Your personal video library.",
   icons: {
-    icon: [{ url: "/streamlt-logo.svg", type: "image/svg+xml" }],
+    icon: [{ url: "/streamlt/streamlt-logo.svg", type: "image/svg+xml" }],
   },
 };
 
