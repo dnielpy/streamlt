@@ -1,7 +1,6 @@
 import { formatVideoTitle } from "@/lib/utils";
 import { formatDate } from "@/src/modules/player/utils/date";
 import type { Video } from "@/src/modules/list/types";
-import { DownloadButton } from "@/src/modules/download/components/download-button";
 import { UpNextList } from "@/src/modules/watch/components/up-next-list";
 import { VideoPlayer } from "@/src/modules/watch/components/video-player";
 
@@ -19,7 +18,7 @@ export function WatchView({ video, upNext }: Props) {
         <div className="min-w-0 lg:sticky lg:top-[82px] lg:self-start">
           <VideoPlayer key={video.id} video={video} />
 
-          <div className="mt-4 flex items-start justify-between gap-4">
+          <div className="mt-4">
             <div className="min-w-0">
               <h1 className="text-[23px] font-bold leading-tight tracking-[-0.04em] text-foreground sm:text-[26px]">
                 {displayTitle}
@@ -28,8 +27,6 @@ export function WatchView({ video, upNext }: Props) {
                 {video.duration} <span aria-hidden="true">•</span> Modified {formatDate(video.modifiedAt)}
               </p>
             </div>
-
-            <DownloadButton streamUrl={video.streamUrl} />
           </div>
         </div>
 

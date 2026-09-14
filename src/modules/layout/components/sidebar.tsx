@@ -1,20 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { House, Upload, Users } from "lucide-react";
+import { House, Upload } from "lucide-react";
 import { usePathname } from "next/navigation";
-import type { ProfileSummary } from "@/src/modules/profiles/types";
 
-const baseNavigation = [
+const navigation = [
   { href: "/", label: "Home", icon: House },
   { href: "/upload", label: "Upload", icon: Upload },
 ];
 
-export function Sidebar({ profile }: { profile: ProfileSummary | null }) {
+export function Sidebar() {
   const pathname = usePathname();
-  const navigation = profile?.isAdmin
-    ? [...baseNavigation, { href: "/admin/profiles", label: "Profiles", icon: Users }]
-    : baseNavigation;
 
   const links = navigation.map((item) => {
     const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
